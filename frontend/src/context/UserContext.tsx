@@ -4,9 +4,8 @@ import { CurrentUser, setActiveUser as setApiActiveUser, getActiveUser, apiFetch
 interface UserContextType {
   currentUser: CurrentUser | null;
   availableUsers: CurrentUser[];
-  login: (email: string, password?: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  switchUser: (user: CurrentUser) => void;
   refreshUsers: () => void;
   theme: "light" | "dark";
   toggleTheme: () => void;
@@ -30,10 +29,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (currentUser) {
+      fetchUsers();
+    } else {
+      setAvailableUsers([]);
+    }
+  }, [currentUser?.id]);
 
-  const login = async (email: string, password = "password") => {
+  const login = async (email: string, password: string) => {
     const res = await apiFetch<{ data: { token: string; user: CurrentUser } }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
@@ -48,11 +51,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setCurrentUser(null);
     setApiActiveUser(null);
-  };
-
-  const switchUser = (user: CurrentUser) => {
-    setCurrentUser(user);
-    setApiActiveUser(user, `koa_token_${user.id}_${Date.now()}`);
+    setAvailableUsers([]);
   };
 
   const toggleTheme = () => {
@@ -66,7 +65,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <UserContext.Provider value={{ currentUser, availableUsers, login, logout, switchUser, refreshUsers: fetchUsers, theme, toggleTheme }}>
+    <UserContext.Provider value={{ currentUser, availableUsers, login, logout, refreshUsers: fetchUsers, theme, toggleTheme }}>
       {children}
     </UserContext.Provider>
   );

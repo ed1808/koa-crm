@@ -1,6 +1,7 @@
 import { NativeRouter, jsonResponse, parseBody } from "../../shared/infrastructure/Router";
 import { sql } from "../../database/db";
 import { resolveAuthUser } from "../../shared/presentation/authMiddleware";
+import { signToken } from "../../shared/infrastructure/AuthToken";
 
 const VALID_ROLES = ["ADMIN", "COMERCIAL", "SOPORTE", "EMPLEADO_INTERNO", "CLIENTE", "PROVEEDOR"] as const;
 
@@ -30,17 +31,25 @@ export function registerIamRoutes(router: NativeRouter) {
       return jsonResponse({ error: "Esta cuenta se encuentra inactiva" }, 403);
     }
 
-    // Validar contraseña real para usuarios creados/actualizados con hash; mantener compatibilidad con cuentas semilla MVP
-    if (userRow.password_hash !== "pbkdf2_dummy_hash_for_mvp") {
-      const provided = String(password || "");
-      const valid = provided.length > 0 && (await Bun.password.verify(provided, userRow.password_hash));
-      if (!valid) {
-        return jsonResponse({ error: "Usuario o contraseña inválidos" }, 401);
-      }
+    const provided = String(password || "");
+    if (!provided) {
+      return jsonResponse({ error: "La contraseña es requerida" }, 400);
+    }
+
+    // Validar contraseña segura
+    let valid = false;
+    if (userRow.password_hash === "pbkdf2_dummy_hash_for_mvp") {
+      valid = provided === "123456";
+    } else {
+      valid = await Bun.password.verify(provided, userRow.password_hash);
+    }
+
+    if (!valid) {
+      return jsonResponse({ error: "Usuario o contraseña inválidos" }, 401);
     }
 
     const { password_hash: _, ...safeUser } = userRow;
-    const token = `koa_token_${safeUser.id}_${Date.now()}`;
+    const token = signToken({ id: safeUser.id, role: safeUser.role, email: safeUser.email });
 
     return jsonResponse({
       data: {
@@ -50,14 +59,18 @@ export function registerIamRoutes(router: NativeRouter) {
     });
   });
 
-  // 2. Listar usuarios (selectores operativos o administración completa para ADMIN)
+  // 2. Listar usuarios (requiere autenticación)
   router.get("/api/users", async (req) => {
+    const authUser = await resolveAuthUser(req);
+    if (!authUser) {
+      return jsonResponse({ error: "No autorizado: se requiere iniciar sesión" }, 401);
+    }
+
     const url = new URL(req.url);
     const role = url.searchParams.get("role");
     const includeInactive = url.searchParams.get("include_inactive") === "true";
 
     if (includeInactive) {
-      const authUser = await resolveAuthUser(req);
       if (authUser.role !== "ADMIN") {
         return jsonResponse({ error: "Solo un administrador puede consultar usuarios inactivos" }, 403);
       }

@@ -70,11 +70,14 @@ export async function runSeed() {
     },
   ];
 
+  const defaultPassword = process.env.DEFAULT_SEED_PASSWORD || "123456";
+  const defaultHash = await Bun.password.hash(defaultPassword);
+
   const userMap = new Map<string, string>();
   for (const u of users) {
     const res = await sql`
       INSERT INTO users (full_name, email, password_hash, role, department)
-      VALUES (${u.full_name}, ${u.email}, 'pbkdf2_dummy_hash_for_mvp', ${u.role}, ${u.department})
+      VALUES (${u.full_name}, ${u.email}, ${defaultHash}, ${u.role}, ${u.department})
       RETURNING id, email, full_name;
     `;
     userMap.set(u.email, res[0].id);

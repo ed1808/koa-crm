@@ -81,7 +81,8 @@ export class NativeRouter {
             });
           } catch (error: any) {
             console.error(`[Router Error] ${method} ${pathname}:`, error);
-            return jsonResponse({ error: error.message || "Internal Server Error" }, 500);
+            const status = typeof error?.statusCode === "number" ? error.statusCode : 500;
+            return jsonResponse({ error: error.message || "Internal Server Error" }, status);
           }
         }
       }

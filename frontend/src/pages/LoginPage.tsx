@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles, Building2, User } from "lucide-react";
+import { Lock, Mail, ArrowRight } from "lucide-react";
 import { useUser } from "../context/UserContext";
 
 export const LoginPage: React.FC = () => {
-  const { login, availableUsers } = useUser();
-  const [email, setEmail] = useState("admin@koa.com");
-  const [password, setPassword] = useState("123456");
+  const { login } = useUser();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,15 +16,10 @@ export const LoginPage: React.FC = () => {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+      setError(err.message || "Credenciales incorrectas o usuario no encontrado");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickSelect = (userEmail: string) => {
-    setEmail(userEmail);
-    setPassword("123456");
   };
 
   return (
@@ -67,7 +62,7 @@ export const LoginPage: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="usuario@koa.com"
+                placeholder="usuario@tuempresa.com"
                 className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
@@ -99,58 +94,6 @@ export const LoginPage: React.FC = () => {
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        {/* Quick Demo Access Credentials */}
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
-          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider text-center">
-            Acceso Rápido por Rol (Demostración)
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => handleQuickSelect("admin@koa.com")}
-              className="p-2 text-left bg-slate-50 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors"
-            >
-              <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3 text-brand-600" /> Admin
-              </div>
-              <div className="text-[10px] text-slate-500 truncate">admin@koa.com</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect("rafael.betancourt@koa.com")}
-              className="p-2 text-left bg-slate-50 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors"
-            >
-              <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                <User className="w-3 h-3 text-emerald-600" /> Comercial
-              </div>
-              <div className="text-[10px] text-slate-500 truncate">rafael.betancourt@...</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect("cristi.ruiz@koa.com")}
-              className="p-2 text-left bg-slate-50 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors"
-            >
-              <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-teal-600" /> Soporte
-              </div>
-              <div className="text-[10px] text-slate-500 truncate">cristi.ruiz@...</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleQuickSelect("claudia.otalvaro@acuagas.com")}
-              className="p-2 text-left bg-slate-50 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950/60 border border-slate-200 dark:border-slate-700 rounded-lg transition-colors"
-            >
-              <div className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                <Building2 className="w-3 h-3 text-indigo-600" /> Cliente
-              </div>
-              <div className="text-[10px] text-slate-500 truncate">claudia.otalvaro@...</div>
-            </button>
-          </div>
-        </div>
 
       </div>
     </div>

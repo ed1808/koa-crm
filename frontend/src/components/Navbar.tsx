@@ -24,7 +24,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, onOpenCopilot }) => {
-  const { currentUser, availableUsers, switchUser, logout, theme, toggleTheme } = useUser();
+  const { currentUser, logout, theme, toggleTheme } = useUser();
 
   if (!currentUser) return null;
 
@@ -179,36 +179,26 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, onOpenCo
             </div>
 
             {/* Dropdown Menu */}
-            <div className="absolute right-0 mt-1 w-64 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-2 hidden group-hover:block z-50">
-              <div className="text-[11px] font-semibold text-slate-400 px-2 py-1 uppercase tracking-wider">
-                Cambiar de Usuario
-              </div>
-              <div className="max-h-56 overflow-y-auto space-y-1">
-                {availableUsers.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => switchUser(u)}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs flex flex-col transition-colors ${
-                      u.id === currentUser.id
-                        ? "bg-brand-50 dark:bg-brand-950 text-brand-900 dark:text-brand-300 font-medium"
-                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    <span className="font-medium truncate">{u.full_name}</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">{u.role} · {u.department || "General"}</span>
-                  </button>
-                ))}
+            <div className="absolute right-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-2.5 hidden group-hover:block z-50">
+              <div className="px-2 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1.5">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  {currentUser.full_name}
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                  {currentUser.email}
+                </p>
+                <span className="inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-800">
+                  Rol: {currentUser.role}
+                </span>
               </div>
 
-              <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  onClick={logout}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors font-medium"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Cerrar Sesión</span>
-                </button>
-              </div>
+              <button
+                onClick={logout}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors font-medium"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Cerrar Sesión</span>
+              </button>
             </div>
           </div>
 

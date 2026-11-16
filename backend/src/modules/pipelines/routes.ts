@@ -8,6 +8,9 @@ export function registerPipelineRoutes(router: NativeRouter) {
     const url = new URL(req.url);
     const moduleType = url.searchParams.get("module") || "CRM";
     const user = await resolveAuthUser(req);
+    if (!user) {
+      return jsonResponse({ error: "No autorizado: se requiere iniciar sesión" }, 401);
+    }
 
     let pipelines;
     if (moduleType === "ALL") {
@@ -63,6 +66,9 @@ export function registerPipelineRoutes(router: NativeRouter) {
   // 3. Crear nuevo pipeline (Solo ADMIN)
   router.post("/api/pipelines", async (req) => {
     const user = await resolveAuthUser(req);
+    if (!user) {
+      return jsonResponse({ error: "No autorizado: se requiere iniciar sesión" }, 401);
+    }
     if (user.role !== "ADMIN") {
       return jsonResponse({ error: "Solo el administrador puede crear nuevos pipelines" }, 403);
     }
@@ -136,6 +142,9 @@ export function registerPipelineRoutes(router: NativeRouter) {
   // 4. Actualizar etapas de un pipeline (Solo ADMIN)
   router.put("/api/pipelines/:id/stages", async (req, params) => {
     const user = await resolveAuthUser(req);
+    if (!user) {
+      return jsonResponse({ error: "No autorizado: se requiere iniciar sesión" }, 401);
+    }
     if (user.role !== "ADMIN") {
       return jsonResponse({ error: "Solo el administrador puede modificar etapas de pipelines" }, 403);
     }
