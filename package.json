@@ -1,0 +1,15 @@
+{
+  "name": "koa-crm-root",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "bun --filter '*' dev",
+    "dev:backend": "bun --filter backend dev",
+    "dev:frontend": "bun --filter frontend dev",
+    "db:migrate": "bun --filter backend migrate",
+    "db:seed": "bun --filter backend seed"
+  }
+}

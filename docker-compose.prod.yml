@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: koa_crm_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-koa_crm}
+      POSTGRES_USER: ${POSTGRES_USER:-koa_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-koa_secret_2026}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-koa_admin} -d $${POSTGRES_DB:-koa_crm}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: koa_crm_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-koa_rabbit}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-koa_rabbit_2026}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: koa_crm_backend
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER:-koa_admin}:${POSTGRES_PASSWORD:-koa_secret_2026}@postgres:5432/${POSTGRES_DB:-koa_crm}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-koa_admin}
+      DB_PASS: ${POSTGRES_PASSWORD:-koa_secret_2026}
+      DB_NAME: ${POSTGRES_DB:-koa_crm}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-koa_rabbit}:${RABBITMQ_PASS:-koa_rabbit_2026}@rabbitmq:5672
+      RABBITMQ_EXCHANGE: ${RABBITMQ_EXCHANGE:-koa.events}
+      JWT_SECRET: ${JWT_SECRET:-koa_super_secret_jwt_key_crm_2026_dev_env_change_in_prod}
+      AUTO_MIGRATE: "true"
+      RUN_SEED: ${RUN_SEED:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    expose:
+      - "3001"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+    container_name: koa_crm_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
